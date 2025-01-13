@@ -1,0 +1,2 @@
+# Output from running inference.py
+# This file will contain the top 5 predictions and their probabilities.

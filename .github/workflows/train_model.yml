@@ -1,0 +1,84 @@
+name: Train Multiple Models
+
+on:
+  push:
+    branches:
+      - main  # Trigger workflow on changes to the main branch
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'  # Python version to use
+
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Download Dataset
+      run: |
+        mkdir -p flower_data
+        # Add your dataset download link here if needed
+        # wget -O flower_data.zip <DATASET_LINK>
+        # unzip flower_data.zip -d flower_data
+        echo "Dataset ready in flower_data directory"
+
+    - name: Train EfficientNet
+      run: |
+        python train.py --data_dir flower_data \
+                        --model_architecture efficientnet \
+                        --learning_rate 0.001 \
+                        --hidden_units 512 \
+                        --epochs 3 \
+                        --batch_size 32 \
+                        --device cpu > efficientnet_results.txt
+      env:
+        MODEL_NAME: efficientnet
+
+    - name: Train ResNet
+      run: |
+        python train.py --data_dir flower_data \
+                        --model_architecture resnet \
+                        --learning_rate 0.001 \
+                        --hidden_units 512 \
+                        --epochs 3 \
+                        --batch_size 32 \
+                        --device cpu > resnet_results.txt
+      env:
+        MODEL_NAME: resnet
+
+    - name: Save ResNet Results and Model
+      uses: actions/upload-artifact@v3
+      with:
+        name: resnet-results-and-model
+        path: |
+          best_model.pth
+          resnet_results.txt
+
+    - name: Train VGG16
+      run: |
+        python train.py --data_dir flower_data \
+                        --model_architecture vgg16 \
+                        --learning_rate 0.001 \
+                        --hidden_units 512 \
+                        --epochs 3 \
+                        --batch_size 32 \
+                        --device cpu > vgg16_results.txt
+      env:
+        MODEL_NAME: vgg16
+
+    - name: Save VGG16 Results and Model
+      uses: actions/upload-artifact@v3
+      with:
+        name: vgg16-results-and-model
+        path: |
+          best_model.pth
+          vgg16_results.txt
