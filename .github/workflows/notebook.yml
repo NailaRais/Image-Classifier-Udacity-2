@@ -1,0 +1,44 @@
+name: Run Jupyter Notebook with Papermill
+
+# Trigger manually using the "workflow_dispatch" event
+on:
+  workflow_dispatch:  # Allows you to manually trigger the workflow from the Actions tab
+
+jobs:
+  run-notebook:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout the repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.8'
+
+    - name: Install dependencies
+      run: |
+        pip install --upgrade pip
+        pip install torch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 Pillow==10.0.0 numpy==1.24.3 tqdm==4.65.0 matplotlib==3.7.2 transformers jupyter papermill nbformat nbconvert ipykernel
+        python -m ipykernel install --user --name python3
+
+    - name: Ensure Notebook Exists
+      run: |
+        if [ ! -f "Notebook.ipynb" ]; then
+          echo "Error: Notebook.ipynb not found in the repository!"; exit 1
+        fi
+
+    - name: Convert Notebook to Version 4
+      run: |
+        jupyter nbconvert --to notebook --nbformat 4 --inplace Notebook.ipynb
+
+    - name: Run Notebook with Papermill
+      run: |
+        papermill Notebook.ipynb Executed_Notebook.ipynb -k python3
+
+    - name: Upload Executed Notebook
+      uses: actions/upload-artifact@v3
+      with:
+        name: executed-notebook
+        path: Executed_Notebook.ipynb
