@@ -1,27 +1,29 @@
 import torch
-from torchvision import models
+from transformers import AutoModelForImageClassification
 
-import torch
-from torchvision import models
-from torch import nn  # Importing nn for model definition
+# Function to load the model from Hugging Face
+def load_checkpoint(model_path):
+    """
+    Load a pre-trained model from the Hugging Face Hub.
 
-# Function to load the checkpoint
-def load_checkpoint(filepath):
-    # Initialize the EfficientNet model (use the same architecture as during training)
-    model = models.efficientnet_b0(weights=None)  # No pre-trained weights since we load custom weights
-    
-    # Load the checkpoint
-    checkpoint = torch.load(filepath, map_location=torch.device("cpu"))  # Adjust for device
-    
-    # Check if checkpoint contains a 'state_dict'
-    if isinstance(checkpoint, dict) and "state_dict" in checkpoint:
-        model.load_state_dict(checkpoint["state_dict"])
-    else:
-        model.load_state_dict(checkpoint)
-    
+    Args:
+        model_path (str): The Hugging Face model repository ID or local directory.
+
+    Returns:
+        model: The loaded PyTorch model.
+    """
+    # Load model directly from Hugging Face repository or local path
+    model = AutoModelForImageClassification.from_pretrained(model_path)
     return model
 
 # Example usage
-model = load_checkpoint("best_model_compressed.pth")
-model.eval()  # Set the model to evaluation mode
-print("EfficientNet model successfully loaded!")
+if __name__ == "__main__":
+    # Replace with your Hugging Face model repository ID or local path
+    model_path = "nailarais1/image-classifier-efficientnet"  # model path
+    try:
+        model = load_checkpoint(model_path)
+        model.eval()  # Set the model to evaluation mode
+        print("Model successfully loaded from Hugging Face!")
+    except Exception as e:
+        print(f"Error loading model: {e}")
+
