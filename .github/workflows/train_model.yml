@@ -3,10 +3,6 @@ name: Train Multiple Models
 # Trigger manually using the "workflow_dispatch" event
 on:
   workflow_dispatch:  # Allows you to manually trigger the workflow from the Actions tab
-  # You can also trigger based on other workflows' completion like this:
-  # workflow_run:
-  #   workflows: ["Another Workflow"]
-  #   types: [completed]
 
 jobs:
   train:
@@ -26,12 +22,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Download Dataset
-      run: |
-        mkdir -p flower_data
-        # Download dataset or set the path for your dataset
-        echo "Dataset ready in flower_data directory"
-
     - name: Train EfficientNet
       run: |
         python train.py --data_dir flower_data \
@@ -44,13 +34,13 @@ jobs:
       env:
         MODEL_NAME: efficientnet
 
-    - name: Upload EfficientNet Model to Release
-      uses: softprops/action-gh-release@v1
+    - name: Save EfficientNet Results and Model
+      uses: actions/upload-artifact@v3
       with:
-        tag_name: v1.0.0
-        files: efficientnet_checkpoint.pth
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        name: efficientnet-results-and-model
+        path: |
+          checkpoint.pth
+          efficientnet_results.txt
 
     - name: Train ResNet
       run: |
@@ -64,13 +54,13 @@ jobs:
       env:
         MODEL_NAME: resnet
 
-    - name: Upload ResNet Model to Release
-      uses: softprops/action-gh-release@v1
+    - name: Save ResNet Results and Model
+      uses: actions/upload-artifact@v3
       with:
-        tag_name: v1.0.0
-        files: resnet_checkpoint.pth
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        name: resnet-results-and-model
+        path: |
+          checkpoint.pth
+          resnet_results.txt
 
     - name: Train VGG16
       run: |
@@ -84,22 +74,10 @@ jobs:
       env:
         MODEL_NAME: vgg16
 
-    - name: Upload VGG16 Model to Release
-      uses: softprops/action-gh-release@v1
+    - name: Save VGG16 Results and Model
+      uses: actions/upload-artifact@v3
       with:
-        tag_name: v1.0.0
-        files: vgg16_checkpoint.pth
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    # Add additional models here following the same pattern if needed.
-
-    - name: Create GitHub Release
-      id: create_release
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: v1.0.0
-        body: "This release contains the trained models (EfficientNet, ResNet, VGG16)."
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+        name: vgg16-results-and-model
+        path: |
+          checkpoint.pth
+          vgg16_results.txt
