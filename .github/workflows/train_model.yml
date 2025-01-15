@@ -25,9 +25,7 @@ jobs:
     - name: Download Dataset
       run: |
         mkdir -p flower_data
-        # Add your dataset download link here if needed
-        # wget -O flower_data.zip <DATASET_LINK>
-        # unzip flower_data.zip -d flower_data
+    
         echo "Dataset ready in flower_data directory"
 
     - name: Train EfficientNet
@@ -41,6 +39,14 @@ jobs:
                         --device cpu > efficientnet_results.txt
       env:
         MODEL_NAME: efficientnet
+
+    - name: Save EfficientNet Results and Model
+      uses: actions/upload-artifact@v3
+      with:
+        name: efficientnet-results-and-model
+        path: |
+          best_model.pth
+          efficientnet_results.txt
 
     - name: Train ResNet
       run: |
