@@ -43,13 +43,14 @@ def predict(image_path, model, topk=5, device="cpu"):
     with torch.no_grad():
         outputs = model(image)
         probs, indices = torch.topk(torch.softmax(outputs, dim=1), topk)
-        return probs.squeeze().cpu().numpy(), indices.squeeze().cpu().numpy()
+        
+        class_names = load_class_names("cat_to_name.json")  # Load class names
+        named_classes = [class_names[str(idx)] for idx in indices.squeeze().cpu().numpy()]  # Map to class names
+        return probs.squeeze().cpu().numpy(), named_classes
 
 # Function to display an image along with the top 5 classes and save the results to a text file
 def display_prediction(image_path, model, output_file="prediction_results.txt", device="cpu"):
-    probs, indices = predict(image_path, model, device=device)
-    class_names = load_class_names("cat_to_name.json")  # Load class names
-    named_classes = [class_names[str(idx)] for idx in indices]  # Map to class names
+    probs, named_classes = predict(image_path, model, device=device)
     result = f"Top 5 predictions: {named_classes} with probabilities: {probs}\n"
     
     # Save the results to a text file
@@ -72,7 +73,7 @@ def main():
 
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description="Predict the class of an input image using a pretrained model")
-    parser.add_argument("--image_path", type=str, required=True, help="flowers/test/100/image_07896.jpg")
+    parser.add_argument("--image_path", type=str, required=True, help="Path to the input image")
     parser.add_argument("--device", type=str, default="cpu", choices=["cpu", "cuda"], help="Device to run inference on")
     parser.add_argument("--topk", type=int, default=5, help="Number of top predictions to return")
     parser.add_argument("--output_file", type=str, default="results/prediction_results.txt", help="Path to save prediction results")
