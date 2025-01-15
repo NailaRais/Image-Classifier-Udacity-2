@@ -14,7 +14,7 @@ def download_model():
 
 # Function to process the image
 def process_image(image_path):
-    image = Image.open(image_path)
+    image = Image.open(image_path).convert('RGB')  # Ensure image is in RGB format
     transform = transforms.Compose([
         transforms.Resize(256),
         transforms.CenterCrop(224),
