@@ -1,84 +1,42 @@
-import torch
-from torchvision import transforms, models
-from PIL import Image
 import argparse
 import json
+import numpy as np
+import fmodel
 
-# Function to load the checkpoint
-def load_checkpoint(filepath, device):
-    checkpoint = torch.load(filepath, map_location=device)
-    architecture = checkpoint['architecture']
-    class_to_idx = checkpoint['class_to_idx']
+# Argument parser
+parser = argparse.ArgumentParser(description="Predict the class of an image using a trained model")
+parser.add_argument('input', default='./flowers/test/1/image_06752.jpg', nargs='?', type=str, help="Path to input image")
+parser.add_argument('--dir', default="./flowers/", type=str, help="Path to data directory")
+parser.add_argument('checkpoint', default='./checkpoint.pth', nargs='?', type=str, help="Path to model checkpoint")
+parser.add_argument('--top_k', default=5, type=int, help="Number of top predictions to return")
+parser.add_argument('--category_names', default='cat_to_name.json', type=str, help="Path to JSON file mapping categories to names")
+parser.add_argument('--gpu', default="gpu", type=str, help="Device to use for inference ('cpu' or 'gpu')")
 
-    # Load the correct model architecture
-    if architecture == "efficientnet":
-        model = models.efficientnet_b0(weights="DEFAULT")
-        model.classifier[1] = torch.nn.Linear(model.classifier[1].in_features, len(class_to_idx))
-    elif architecture == "resnet":
-        model = models.resnet50(weights="DEFAULT")
-        model.fc = torch.nn.Linear(model.fc.in_features, len(class_to_idx))
-    elif architecture == "vgg16":
-        model = models.vgg16(weights="DEFAULT")
-        model.classifier[6] = torch.nn.Linear(model.classifier[6].in_features, len(class_to_idx))
-    else:
-        raise ValueError(f"Unsupported architecture: {architecture}")
+args = parser.parse_args()
 
-    # Load the state dict
-    model.load_state_dict(checkpoint['model_state_dict'])
-    model.class_to_idx = class_to_idx
-    model.idx_to_class = {v: k for k, v in class_to_idx.items()}  # Reverse the class_to_idx
-    model.eval()
-    return model
-
-# Function to process the image
-def process_image(image_path):
-    image = Image.open(image_path).convert('RGB')  # Ensure the image is in RGB format
-    transform = transforms.Compose([
-        transforms.Resize(256),
-        transforms.CenterCrop(224),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-    ])
-    image = transform(image).unsqueeze(0)  # Add batch dimension
-    return image
-
-# Function to predict the class of an image
-def predict(image_path, model, topk=5, device="cpu"):
-    image = process_image(image_path).to(device)
-
-    with torch.no_grad():
-        outputs = model(image)
-        probs, indices = torch.topk(torch.softmax(outputs, dim=1), topk)
-
-    # Convert indices to class names
-    probs = probs.squeeze().cpu().numpy()
-    indices = indices.squeeze().cpu().numpy()
-    class_names = [model.idx_to_class[idx] for idx in indices]
-
-    return probs, class_names
-
-# Main function to parse arguments and make predictions
+# Main function
 def main():
-    # Parse command-line arguments
-    parser = argparse.ArgumentParser(description="Predict the class of an input image using a trained model")
-    parser.add_argument("--image_path", type=str, required=True, help="Path to the input image")
-    parser.add_argument("--checkpoint", type=str, required=True, help="Path to the model checkpoint")
-    parser.add_argument("--topk", type=int, default=5, help="Number of top predictions to return")
-    parser.add_argument("--device", type=str, default="cpu", choices=["cpu", "cuda"], help="Device to run inference on")
-    args = parser.parse_args()
-
     # Load the model
-    model = load_checkpoint(args.checkpoint, args.device)
-    model = model.to(args.device)
+    model = fmodel.load_checkpoint(args.checkpoint)
 
-    # Predict the class
-    probs, class_names = predict(args.image_path, model, args.topk, device=args.device)
+    # Load category names
+    with open(args.category_names, 'r') as json_file:
+        category_names = json.load(json_file)
 
-    # Print the results
-    print(f"Top {args.topk} Predictions:")
-    for i, (prob, class_name) in enumerate(zip(probs, class_names)):
-        print(f"{i + 1}: {class_name} with probability {prob:.4f}")
+    # Set device
+    device = "cuda" if args.gpu == "gpu" and torch.cuda.is_available() else "cpu"
+
+    # Predict
+    probs, class_indices = fmodel.predict(args.input, model, topk=args.top_k, device=device)
+
+    # Map class indices to labels
+    labels = [category_names.get(str(index), "Unknown") for index in class_indices]
+
+    # Display predictions
+    for i, (label, prob) in enumerate(zip(labels, probs)):
+        print(f"{i + 1}: {label} with probability {prob:.4f}")
+
+    print("Finished Predicting!")
 
 if __name__ == "__main__":
     main()
-
