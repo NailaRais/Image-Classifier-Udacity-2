@@ -29,4 +29,4 @@ jobs:
 
     - name: Run Prediction Script
       run: |
-        python predict.py --image_path "flowers/test/100/image_07896.jpg" --device "cpu" --topk 5 --output_file "results/prediction_results.txt"
+        python predict.py --image_path "assets/Flowers.png" --device "cpu" --topk 5 --output_file "results/prediction_results.txt"
