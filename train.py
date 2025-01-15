@@ -132,7 +132,7 @@ def main():
                 'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
                 'class_to_idx': class_to_idx,
-            }, 'best_model.pth')
+            }, 'checkpoint.pth')
 
         scheduler.step()
 
