@@ -1,9 +1,8 @@
 name: Predict
 
+# Trigger manually using the "workflow_dispatch" event
 on:
-  push:
-    branches:
-      - main  # Change this to your default branch if different
+  workflow_dispatch:  # Allows you to manually trigger the workflow from the Actions tab
 
 jobs:
   predict:
@@ -11,17 +10,27 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v3
       with:
-        python-version: '3.8'  # Specify the Python version
+        python-version: '3.8'
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
+        pip install transformers
 
-    - name: Run prediction script
-      run: python predict.py
+
+
+    - name: Run predict script
+      run: |
+        python predict.py --repo_id "nailarais1/image-classifier-efficientnet" --image_path "assets/Flowers.png" --output_file "results/prediction_results.txt"
+
+    - name: Upload prediction results
+      uses: actions/upload-artifact@v3
+      with:
+        name: prediction-results
+        path: results/prediction_results.txt
