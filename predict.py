@@ -73,7 +73,7 @@ def main():
 
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description="Predict the class of an input image using a pretrained model")
-    parser.add_argument("--image_path", type=str, required=True, help="Path to the input image")
+    parser.add_argument("--image_path", type=str, required=True, help="assets/Flowers.png")
     parser.add_argument("--device", type=str, default="cpu", choices=["cpu", "cuda"], help="Device to run inference on")
     parser.add_argument("--topk", type=int, default=5, help="Number of top predictions to return")
     parser.add_argument("--output_file", type=str, default="results/prediction_results.txt", help="Path to save prediction results")
