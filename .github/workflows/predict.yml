@@ -27,10 +27,12 @@ jobs:
 
     - name: Run predict script
       run: |
-        python predict.py --repo_id "nailarais1/image-classifier-efficientnet" --image_path "assets/Flowers.png" --output_file "results/prediction_results.txt"
+        python predict.py --model_path "path/to/your/model/checkpoint.pth" --image_path "assets/Flowers.png" --device "cuda" --topk 5 --output_file "results/prediction_results.txt"
+
 
     - name: Upload prediction results
       uses: actions/upload-artifact@v3
       with:
         name: prediction-results
         path: results/prediction_results.txt
+
