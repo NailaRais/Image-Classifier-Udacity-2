@@ -40,13 +40,22 @@ jobs:
       env:
         MODEL_NAME: efficientnet
 
-    - name: Save EfficientNet Results and Model
-      uses: actions/upload-artifact@v3
+    - name: Create Release
+      id: create_release
+      uses: softprops/action-gh-release@v1
       with:
-        name: efficientnet-results-and-model
-        path: |
-          best_model.pth
-          efficientnet_results.txt
+        tag_name: v1.0.0
+        body: "This release contains the trained models."
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload EfficientNet Model to Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v1.0.0
+        files: checkpoint.pth
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Train ResNet
       run: |
@@ -60,13 +69,13 @@ jobs:
       env:
         MODEL_NAME: resnet
 
-    - name: Save ResNet Results and Model
-      uses: actions/upload-artifact@v3
+    - name: Upload ResNet Model to Release
+      uses: softprops/action-gh-release@v1
       with:
-        name: resnet-results-and-model
-        path: |
-          best_model.pth
-          resnet_results.txt
+        tag_name: v1.0.0
+        files: checkpoint.pth
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Train VGG16
       run: |
@@ -80,10 +89,10 @@ jobs:
       env:
         MODEL_NAME: vgg16
 
-    - name: Save VGG16 Results and Model
-      uses: actions/upload-artifact@v3
+    - name: Upload VGG16 Model to Release
+      uses: softprops/action-gh-release@v1
       with:
-        name: vgg16-results-and-model
-        path: |
-          best_model.pth
-          vgg16_results.txt
+        tag_name: v1.0.0
+        files: checkpoint.pth
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
