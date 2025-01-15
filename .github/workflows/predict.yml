@@ -10,23 +10,25 @@ jobs:
 
     steps:
     - name: Checkout Code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3  # Check out the repository code
 
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v3  # Set up Python environment
       with:
-        python-version: '3.8'
+        python-version: '3.8'  # Specify Python version
 
     - name: Install Dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install gdown
+        pip install gdown  # Install additional dependency for downloading the model
 
     - name: Download Model from Google Drive
       run: |
         gdown 'https://drive.google.com/uc?id=145gmljz5SYogBe9e-UmEC8KKtWk7hQ5q' -O checkpoint.pth
+      # Downloads the model file from Google Drive and saves it as 'checkpoint.pth'
 
     - name: Run Prediction Script
       run: |
         python predict.py --image_path "assets/Flowers.png" --device "cpu" --topk 5 --output_file "results/prediction_results.txt"
+      # Executes the prediction script with the specified arguments
