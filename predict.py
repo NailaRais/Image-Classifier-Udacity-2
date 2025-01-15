@@ -4,6 +4,7 @@ from PIL import Image
 from huggingface_hub import hf_hub_download
 import matplotlib.pyplot as plt
 import argparse
+import json
 
 # Function to process the image
 def process_image(image_path):
@@ -17,18 +18,22 @@ def process_image(image_path):
     image = transform(image).unsqueeze(0)
     return image
 
-# Function to load the model checkpoint from the Hugging Face Hub
-def load_checkpoint(repo_id, model_filename="pytorch_model.bin"):
-    model_path = hf_hub_download(repo_id=repo_id, filename=model_filename)
+# Function to load the model checkpoint
+def load_checkpoint(model_path):
     checkpoint = torch.load(model_path, map_location="cpu")
     
-    # Create the model architecture and load the state dict
-    from torchvision.models import efficientnet_b0
-    model = efficientnet_b0(weights=None)
+    # Create the model architecture based on the checkpoint
+    model = models.efficientnet_b0(weights=None)  # Adjust based on the architecture used in train.py
     model.classifier[1] = torch.nn.Linear(model.classifier[1].in_features, len(checkpoint['class_to_idx']))
     model.load_state_dict(checkpoint['model_state_dict'])
     print("Model loaded successfully!")
     return model, checkpoint['class_to_idx']
+
+# Function to load class names from JSON
+def load_class_names(json_file):
+    with open(json_file, 'r') as f:
+        class_names = json.load(f)
+    return class_names
 
 # Function to predict the class of an image
 def predict(image_path, model, class_to_idx, topk=5, device="cpu"):
@@ -43,7 +48,9 @@ def predict(image_path, model, class_to_idx, topk=5, device="cpu"):
 # Function to display an image along with the top 5 classes and save the results to a text file
 def display_prediction(image_path, model, class_to_idx, output_file="prediction_results.txt", device="cpu"):
     probs, classes = predict(image_path, model, class_to_idx, device=device)
-    result = f"Top 5 predictions: {classes} with probabilities: {probs}\n"
+    class_names = load_class_names("cat_to_name.json")  # Load class names
+    named_classes = [class_names[cls] for cls in classes]  # Map to class names
+    result = f"Top 5 predictions: {named_classes} with probabilities: {probs}\n"
     
     # Save the results to a text file
     with open(output_file, "w") as file:
@@ -59,14 +66,14 @@ def display_prediction(image_path, model, class_to_idx, output_file="prediction_
 def main():
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description="Predict the class of an input image using a trained model")
-    parser.add_argument("--repo_id", type=str, required=True, help="Hugging Face repository ID (e.g., 'nailarais1/image-classifier-efficientnet')")
+    parser.add_argument("--model_path", type=str, required=True, help="Path to the model checkpoint")
     parser.add_argument("--image_path", type=str, required=True, help="Path to the input image")
     parser.add_argument("--device", type=str, default="cpu", choices=["cpu", "cuda"], help="Device to run inference on")
     parser.add_argument("--topk", type=int, default=5, help="Number of top predictions to return")
     parser.add_argument("--output_file", type=str, default="results/prediction_results.txt", help="Path to save prediction results")
     args = parser.parse_args()
 
-    print(f"Repository ID: {args.repo_id}")
+    print(f"Model path: {args.model_path}")
     print(f"Image path: {args.image_path}")
     print(f"Device: {args.device}")
     print(f"Top-K: {args.topk}")
@@ -74,7 +81,7 @@ def main():
 
     # Load the model
     try:
-        model, class_to_idx = load_checkpoint(args.repo_id)
+        model, class_to_idx = load_checkpoint(args.model_path)
         model = model.to(args.device)
         model.eval()
     except Exception as e:
