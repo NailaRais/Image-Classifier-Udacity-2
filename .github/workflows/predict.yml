@@ -1,4 +1,4 @@
-name: Predict
+name: Predict Model
 
 # Trigger manually using the "workflow_dispatch" event
 on:
@@ -9,30 +9,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+    - name: Checkout Code
+      uses: actions/checkout@v2
 
     - name: Set up Python
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v2
       with:
         python-version: '3.8'
 
-    - name: Install dependencies
+    - name: Install Dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install transformers
+        pip install gdown
 
-
-
-    - name: Run predict script
+    - name: Download Model from Google Drive
       run: |
-        python predict.py --model_path "path/to/your/model/checkpoint.pth" --image_path "assets/Flowers.png" --device "cuda" --topk 5 --output_file "results/prediction_results.txt"
+        gdown 'https://drive.google.com/uc?id=145gmljz5SYogBe9e-UmEC8KKtWk7hQ5q' -O checkpoint.pth
 
-
-    - name: Upload prediction results
-      uses: actions/upload-artifact@v3
-      with:
-        name: prediction-results
-        path: results/prediction_results.txt
-
+    - name: Run Prediction Script
+      run: |
+        python predict.py --image_path "assets/Flowers.png" --device "cpu" --topk 5 --output_file "results/prediction_results.txt"
