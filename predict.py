@@ -1,80 +1,84 @@
 import torch
 from torchvision import transforms, models
 from PIL import Image
-import matplotlib.pyplot as plt
 import argparse
 import json
-import gdown
-import os
 
-def download_model():
-    url = 'https://drive.google.com/uc?id=145gmljz5SYogBe9e-UmEC8KKtWk7hQ5q'
-    output = 'checkpoint.pth'
-    gdown.download(url, output, quiet=False)
+# Function to load the checkpoint
+def load_checkpoint(filepath, device):
+    checkpoint = torch.load(filepath, map_location=device)
+    architecture = checkpoint['architecture']
+    class_to_idx = checkpoint['class_to_idx']
 
+    # Load the correct model architecture
+    if architecture == "efficientnet":
+        model = models.efficientnet_b0(weights="DEFAULT")
+        model.classifier[1] = torch.nn.Linear(model.classifier[1].in_features, len(class_to_idx))
+    elif architecture == "resnet":
+        model = models.resnet50(weights="DEFAULT")
+        model.fc = torch.nn.Linear(model.fc.in_features, len(class_to_idx))
+    elif architecture == "vgg16":
+        model = models.vgg16(weights="DEFAULT")
+        model.classifier[6] = torch.nn.Linear(model.classifier[6].in_features, len(class_to_idx))
+    else:
+        raise ValueError(f"Unsupported architecture: {architecture}")
+
+    # Load the state dict
+    model.load_state_dict(checkpoint['model_state_dict'])
+    model.class_to_idx = class_to_idx
+    model.idx_to_class = {v: k for k, v in class_to_idx.items()}  # Reverse the class_to_idx
+    model.eval()
+    return model
+
+# Function to process the image
 def process_image(image_path):
-    image = Image.open(image_path).convert('RGB')
+    image = Image.open(image_path).convert('RGB')  # Ensure the image is in RGB format
     transform = transforms.Compose([
         transforms.Resize(256),
         transforms.CenterCrop(224),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ])
-    return transform(image).unsqueeze(0)
+    image = transform(image).unsqueeze(0)  # Add batch dimension
+    return image
 
-def load_model():
-    model = models.efficientnet_b0(weights="DEFAULT")
-    model.eval()
-    return model
-
-def load_class_names(json_file):
-    with open(json_file, 'r') as f:
-        return json.load(f)
-
+# Function to predict the class of an image
 def predict(image_path, model, topk=5, device="cpu"):
     image = process_image(image_path).to(device)
+
     with torch.no_grad():
         outputs = model(image)
         probs, indices = torch.topk(torch.softmax(outputs, dim=1), topk)
-        
-        class_names = load_class_names("cat_to_name.json")
-        named_classes = [
-            class_names.get(str(idx), f"Unknown class {idx}") for idx in indices.squeeze().cpu().numpy()
-        ]
-        return probs.squeeze().cpu().numpy(), named_classes
 
-def display_prediction(image_path, model, output_file="results/prediction_results.txt", device="cpu"):
-    probs, named_classes = predict(image_path, model, device=device)
-    os.makedirs(os.path.dirname(output_file), exist_ok=True)
-    
-    result = f"Top 5 predictions: {named_classes} with probabilities: {probs}\n"
-    with open(output_file, "w") as file:
-        file.write(result)
-    print(f"Results saved to {output_file}")
-    
-    image = Image.open(image_path)
-    plt.imshow(image)
-    plt.axis('off')
-    plt.show()
+    # Convert indices to class names
+    probs = probs.squeeze().cpu().numpy()
+    indices = indices.squeeze().cpu().numpy()
+    class_names = [model.idx_to_class[idx] for idx in indices]
 
+    return probs, class_names
+
+# Main function to parse arguments and make predictions
 def main():
-    download_model()
-    model = load_model()
-
-    parser = argparse.ArgumentParser(description="Predict the class of an input image using a pretrained model")
-    parser.add_argument("--image_path", type=str, default="assets/Flowers.png", help="Path to the input image")
-    parser.add_argument("--device", type=str, default="cpu", choices=["cpu", "cuda"], help="Device to run inference on")
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(description="Predict the class of an input image using a trained model")
+    parser.add_argument("--image_path", type=str, required=True, help="Path to the input image")
+    parser.add_argument("--checkpoint", type=str, required=True, help="Path to the model checkpoint")
     parser.add_argument("--topk", type=int, default=5, help="Number of top predictions to return")
-    parser.add_argument("--output_file", type=str, default="results/prediction_results.txt", help="Path to save prediction results")
+    parser.add_argument("--device", type=str, default="cpu", choices=["cpu", "cuda"], help="Device to run inference on")
     args = parser.parse_args()
 
-    print(f"Image path: {args.image_path}")
-    print(f"Device: {args.device}")
-    print(f"Top-K: {args.topk}")
-    print(f"Output file: {args.output_file}")
-
+    # Load the model
+    model = load_checkpoint(args.checkpoint, args.device)
     model = model.to(args.device)
-    display_prediction(args.image_path, model, output_file=args.output_file, device=args.device)
+
+    # Predict the class
+    probs, class_names = predict(args.image_path, model, args.topk, device=args.device)
+
+    # Print the results
+    print(f"Top {args.topk} Predictions:")
+    for i, (prob, class_name) in enumerate(zip(probs, class_names)):
+        print(f"{i + 1}: {class_name} with probability {prob:.4f}")
 
 if __name__ == "__main__":
     main()
+
