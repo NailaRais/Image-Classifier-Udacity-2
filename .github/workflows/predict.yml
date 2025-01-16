@@ -35,7 +35,7 @@ jobs:
     # Step 5: Run the prediction script
     - name: Run Prediction Script
       run: |
-        python predict.py --input "assets/Flowers.png" --gpu "cpu" --top_k 5 --category_names "cat_to_name.json" --output_file "results/prediction_results.txt"
+       python predict.py --image_path "assets/Flowers.png" --checkpoint "checkpoint.pth" --top_k 5 --category_names "cat_to_name.json" --device "cpu" --output_file "results/prediction_results.txt"
 
     # Step 6: Upload prediction results (Optional but recommended)
     - name: Upload Prediction Results
