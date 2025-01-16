@@ -9,7 +9,7 @@ parser.add_argument('--dir', default="./assets/", type=str, help="Path to data d
 parser.add_argument('checkpoint', default='./checkpoint.pth', nargs='?', type=str, help="Path to model checkpoint")
 parser.add_argument('--top_k', default=5, type=int, help="Number of top predictions to return")
 parser.add_argument('--category_names', default='cat_to_name.json', type=str, help="Path to JSON file mapping categories to names")
-parser.add_argument('--cpu', default="cpu", type=str, help="Device to use for inference ('cpu' or 'gpu')")
+parser.add_argument('--gpu', default="cpu", type=str, help="Device to use for inference ('cpu' or 'gpu')")
 
 args = parser.parse_args()
 
