@@ -1,0 +1,5 @@
+1: cautleya spicata with probability 0.9583
+2: hippeastrum with probability 0.0106
+3: tree mallow with probability 0.0099
+4: ball moss with probability 0.0031
+5: hibiscus with probability 0.0029
