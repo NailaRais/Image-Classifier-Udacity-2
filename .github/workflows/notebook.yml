@@ -2,7 +2,7 @@ name: Run Jupyter Notebook with Papermill
 
 # Trigger manually using the "workflow_dispatch" event
 on:
-  workflow_dispatch:  # Allows you to manually trigger the workflow from the Actions tab
+  workflow_dispatch:
 
 jobs:
   run-notebook:
@@ -35,10 +35,15 @@ jobs:
 
     - name: Run Notebook with Papermill
       run: |
-        papermill Notebook.ipynb Executed_Notebook.ipynb -k python3
+        papermill Notebook.ipynb Executed_Notebook.ipynb -k python3 > notebook_output.log 2>&1
+        cat notebook_output.log  # Print notebook output in the Actions log
 
-    - name: Upload Executed Notebook
+    - name: Upload Executed Notebook and Logs
       uses: actions/upload-artifact@v3
       with:
         name: executed-notebook
-        path: Executed_Notebook.ipynb
+        path: |
+          Executed_Notebook.ipynb
+          notebook_output.log
+
+
