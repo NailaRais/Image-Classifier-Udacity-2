@@ -4,12 +4,12 @@ import numpy as np
 import fmodel
 
 # Argument parser
-parser.add_argument('input', default='./flower_data/test/1/image_06752.jpg', nargs='?', type=str, help="Path to input image")
-parser.add_argument('--dir', default="./flower_data/", type=str, help="Path to data directory")
+parser.add_argument('input', default='./assets/Flowers.png', nargs='?', type=str, help="Path to input image")
+parser.add_argument('--dir', default="./assets/", type=str, help="Path to data directory")
 parser.add_argument('checkpoint', default='./checkpoint.pth', nargs='?', type=str, help="Path to model checkpoint")
 parser.add_argument('--top_k', default=5, type=int, help="Number of top predictions to return")
 parser.add_argument('--category_names', default='cat_to_name.json', type=str, help="Path to JSON file mapping categories to names")
-parser.add_argument('--gpu', default="gpu", type=str, help="Device to use for inference ('cpu' or 'gpu')")
+parser.add_argument('--cpu', default="cpu", type=str, help="Device to use for inference ('cpu' or 'gpu')")
 
 args = parser.parse_args()
 
