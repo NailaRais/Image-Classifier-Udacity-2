@@ -1,0 +1,8 @@
+Using device: cpu
+Epoch 1/3 - Loss: 937.6536, Accuracy: 2.67%
+Validation Accuracy: 2.57%
+Epoch 2/3 - Loss: 927.4798, Accuracy: 2.73%
+Validation Accuracy: 2.57%
+Epoch 3/3 - Loss: 927.3072, Accuracy: 3.11%
+Validation Accuracy: 3.42%
+Training complete. Best validation accuracy: 3.42%
