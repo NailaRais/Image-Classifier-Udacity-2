@@ -6,12 +6,12 @@ import fmodel
 
 # Argument parser
 parser = argparse.ArgumentParser(description="Predict the class of an image using a trained model")
-parser.add_argument('--input', default='./flowers/test/1/image_06752.jpg', type=str, help="Path to input image")
-parser.add_argument('--dir', default="./flowers/", type=str, help="Path to data directory")
+parser.add_argument('--image_path', default='./flowers/test/1/image_06752.jpg', type=str, help="Path to input image")
 parser.add_argument('--checkpoint', default='./checkpoint.pth', type=str, help="Path to model checkpoint")
 parser.add_argument('--top_k', default=5, type=int, help="Number of top predictions to return")
 parser.add_argument('--category_names', default='cat_to_name.json', type=str, help="Path to JSON file mapping categories to names")
-parser.add_argument('--gpu', default="gpu", type=str, help="Device to use for inference ('cpu' or 'gpu')")
+parser.add_argument('--device', default="gpu", type=str, help="Device to use for inference ('cpu' or 'gpu')")
+parser.add_argument('--output_file', default='results/prediction_results.txt', type=str, help="File to save prediction results")
 
 args = parser.parse_args()
 
