@@ -1,0 +1,4 @@
+Input Notebook:  Notebook.ipynb
+Output Notebook: Executed_Notebook.ipynb
+Executing:   0%|          | 0/27 [00:00<?, ?cell/s]Executing notebook with kernel: python3
+Executing:   4%|▎         | 1/27 [00:00<00:22,  1.14cell/s]Executing:   7%|▋         | 2/27 [00:02<00:29,  1.18s/cell]Executing:  11%|█         | 3/27 [00:02<00:20,  1.18cell/s]Executing:  15%|█▍        | 4/27 [00:06<00:43,  1.89s/cell]Executing:  44%|████▍     | 12/27 [00:06<00:05,  2.82cell/s]Executing:  85%|████████▌ | 23/27 [00:06<00:00,  7.05cell/s]Executing: 100%|██████████| 27/27 [00:07<00:00,  3.81cell/s]
