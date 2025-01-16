@@ -1,6 +1,5 @@
 [![Predict](https://github.com/NailaRais/Image-Classifier-Udacity/actions/workflows/predict.yml/badge.svg)](https://github.com/NailaRais/Image-Classifier-Udacity/actions/workflows/predict.yml)
 [![Train Multiple Models](https://github.com/NailaRais/Image-Classifier-Udacity/actions/workflows/train_model.yml/badge.svg)](https://github.com/NailaRais/Image-Classifier-Udacity/actions/workflows/train_model.yml)
-[![Inference](https://github.com/NailaRais/Image-Classifier-Udacity/actions/workflows/inference.yml/badge.svg)](https://github.com/NailaRais/Image-Classifier-Udacity/actions/workflows/inference.yml)
 [![Run Jupyter Notebook with Papermill](https://github.com/NailaRais/Image-Classifier-Udacity/actions/workflows/notebook.yml/badge.svg)](https://github.com/NailaRais/Image-Classifier-Udacity/actions/workflows/notebook.yml)
 
 # **Image Classifier Project**

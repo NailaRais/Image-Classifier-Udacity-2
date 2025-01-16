@@ -1,36 +1,48 @@
-name: Predict
+name: Predict Model
 
-# Trigger manually using the "workflow_dispatch" event
 on:
-  workflow_dispatch:  # Allows you to manually trigger the workflow from the Actions tab
+  workflow_dispatch:  # Allows manual trigger from the Actions tab
 
 jobs:
   predict:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
+    # Step 1: Check out the repository code
+    - name: Checkout Code
       uses: actions/checkout@v3
 
+    # Step 2: Set up Python environment
     - name: Set up Python
       uses: actions/setup-python@v3
       with:
         python-version: '3.8'
 
-    - name: Install dependencies
+    # Step 3: Install dependencies
+    - name: Install Dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install transformers
+        pip install gdown
 
-
-
-    - name: Run predict script
+    # Step 4: Download the model from Google Drive
+    - name: Download Model from Google Drive
       run: |
-        python predict.py --repo_id "nailarais1/image-classifier-efficientnet" --image_path "assets/Flowers.png" --output_file "results/prediction_results.txt"
+        gdown 'https://drive.google.com/uc?id=145gmljz5SYogBe9e-UmEC8KKtWk7hQ5q' -O checkpoint.pth
+      env:
+        GDOWN_FILE_ID: '145gmljz5SYogBe9e-UmEC8KKtWk7hQ5q'  # Add file ID as an environment variable for flexibility
 
-    - name: Upload prediction results
+    # Step 5: Run the prediction script
+    - name: Run Prediction Script
+      run: |
+        python predict.py --image_path "assets/Flowers.png" --device "cpu" --topk 5 --output_file "results/prediction_results.txt"
+
+    # Step 6: Upload prediction results (Optional but recommended)
+    - name: Upload Prediction Results
       uses: actions/upload-artifact@v3
       with:
         name: prediction-results
         path: results/prediction_results.txt
+
+
+

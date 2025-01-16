@@ -22,12 +22,6 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Download Dataset
-      run: |
-        mkdir -p flower_data
-    
-        echo "Dataset ready in flower_data directory"
-
     - name: Train EfficientNet
       run: |
         python train.py --data_dir flower_data \
@@ -45,7 +39,7 @@ jobs:
       with:
         name: efficientnet-results-and-model
         path: |
-          best_model.pth
+          checkpoint.pth
           efficientnet_results.txt
 
     - name: Train ResNet
@@ -65,7 +59,7 @@ jobs:
       with:
         name: resnet-results-and-model
         path: |
-          best_model.pth
+          checkpoint.pth
           resnet_results.txt
 
     - name: Train VGG16
@@ -85,5 +79,5 @@ jobs:
       with:
         name: vgg16-results-and-model
         path: |
-          best_model.pth
+          checkpoint.pth
           vgg16_results.txt

@@ -1,88 +1,47 @@
-import torch
-from torchvision import transforms
-from PIL import Image
-from huggingface_hub import hf_hub_download
-import matplotlib.pyplot as plt
 import argparse
+import json
+import numpy as np
+import fmodel
 
-# Function to process the image
-def process_image(image_path):
-    image = Image.open(image_path)
-    transform = transforms.Compose([
-        transforms.Resize(256),
-        transforms.CenterCrop(224),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-    ])
-    image = transform(image).unsqueeze(0)
-    return image
+# Argument parser
+parser = argparse.ArgumentParser(description="Predict the class of an image using a trained model")
+parser.add_argument('--image_path', default='./flowers/test/1/image_06752.jpg', type=str, help="Path to input image")
+parser.add_argument('--checkpoint', default='./checkpoint.pth', type=str, help="Path to model checkpoint")
+parser.add_argument('--top_k', default=5, type=int, help="Number of top predictions to return")
+parser.add_argument('--category_names', default='cat_to_name.json', type=str, help="Path to JSON file mapping categories to names")
+parser.add_argument('--device', default="cpu", type=str, help="Device to use for inference ('cpu' or 'gpu')")
+parser.add_argument('--output_file', default=None, type=str, help="File to save prediction results")
 
-# Function to load the model checkpoint from the Hugging Face Hub
-def load_checkpoint(repo_id, model_filename="pytorch_model.bin"):
-    model_path = hf_hub_download(repo_id=repo_id, filename=model_filename)
-    checkpoint = torch.load(model_path, map_location="cpu")
-    
-    # Create the model architecture and load the state dict
-    from torchvision.models import efficientnet_b0
-    model = efficientnet_b0(weights=None)
-    model.classifier[1] = torch.nn.Linear(model.classifier[1].in_features, len(checkpoint['class_to_idx']))
-    model.load_state_dict(checkpoint['model_state_dict'])
-    print("Model loaded successfully!")
-    return model, checkpoint['class_to_idx']
+args = parser.parse_args()
 
-# Function to predict the class of an image
-def predict(image_path, model, class_to_idx, topk=5, device="cpu"):
-    image = process_image(image_path)
-    image = image.to(device)
-    with torch.no_grad():
-        outputs = model(image)
-        probs, indices = torch.topk(torch.softmax(outputs, dim=1), topk)
-        classes = [list(class_to_idx.keys())[list(class_to_idx.values()).index(idx)] for idx in indices.squeeze().tolist()]
-        return probs.squeeze().cpu().numpy(), classes
-
-# Function to display an image along with the top 5 classes and save the results to a text file
-def display_prediction(image_path, model, class_to_idx, output_file="prediction_results.txt", device="cpu"):
-    probs, classes = predict(image_path, model, class_to_idx, device=device)
-    result = f"Top 5 predictions: {classes} with probabilities: {probs}\n"
-    
-    # Save the results to a text file
-    with open(output_file, "w") as file:
-        file.write(result)
-    print(f"Results saved to {output_file}")
-    
-    # Display the image
-    image = Image.open(image_path)
-    plt.imshow(image)
-    plt.axis('off')
-    plt.show()
-
+# Main function
 def main():
-    # Parse command-line arguments
-    parser = argparse.ArgumentParser(description="Predict the class of an input image using a trained model")
-    parser.add_argument("--repo_id", type=str, required=True, help="Hugging Face repository ID (e.g., 'nailarais1/image-classifier-efficientnet')")
-    parser.add_argument("--image_path", type=str, required=True, help="Path to the input image")
-    parser.add_argument("--device", type=str, default="cpu", choices=["cpu", "cuda"], help="Device to run inference on")
-    parser.add_argument("--topk", type=int, default=5, help="Number of top predictions to return")
-    parser.add_argument("--output_file", type=str, default="results/prediction_results.txt", help="Path to save prediction results")
-    args = parser.parse_args()
-
-    print(f"Repository ID: {args.repo_id}")
-    print(f"Image path: {args.image_path}")
-    print(f"Device: {args.device}")
-    print(f"Top-K: {args.topk}")
-    print(f"Output file: {args.output_file}")
-
     # Load the model
-    try:
-        model, class_to_idx = load_checkpoint(args.repo_id)
-        model = model.to(args.device)
-        model.eval()
-    except Exception as e:
-        print(f"Error loading model: {e}")
-        return
+    model = fmodel.load_checkpoint(args.checkpoint)
 
-    # Display the prediction and save results to a file
-    display_prediction(args.image_path, model, class_to_idx, output_file=args.output_file, device=args.device)
+    # Load category names
+    with open(args.category_names, 'r') as json_file:
+        category_names = json.load(json_file)
+
+    # Set device
+    device = "cuda" if args.device == "gpu" and torch.cuda.is_available() else "cpu"
+
+    # Predict
+    probs, class_indices = fmodel.predict(args.image_path, model, topk=args.top_k, device=device)
+
+    # Map class indices to labels
+    labels = [category_names.get(str(index), "Unknown") for index in class_indices]
+
+    # Display predictions
+    for i, (label, prob) in enumerate(zip(labels, probs)):
+        print(f"{i + 1}: {label} with probability {prob:.4f}")
+
+    # Save predictions to output file
+    if args.output_file:
+        with open(args.output_file, 'w') as f:
+            for i, (label, prob) in enumerate(zip(labels, probs)):
+                f.write(f"{i + 1}: {label} with probability {prob:.4f}\n")
+        print(f"Predictions saved to {args.output_file}")
 
 if __name__ == "__main__":
     main()
