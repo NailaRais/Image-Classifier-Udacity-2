@@ -8,7 +8,10 @@ from PIL import Image
 # Function to load a checkpoint
 def load_checkpoint(filepath):
     checkpoint = torch.load(filepath, map_location="cuda" if torch.cuda.is_available() else "cpu")
-    architecture = checkpoint['architecture']
+    
+    # Manually specify architecture as 'efficientnet' for this case
+    architecture = 'efficientnet'  # Assuming EfficientNet was used for training
+    
     class_to_idx = checkpoint['class_to_idx']
 
     # Load the correct model architecture
