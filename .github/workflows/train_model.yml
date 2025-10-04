@@ -10,10 +10,10 @@ jobs:
 
     steps:
     - name: Checkout Code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: '3.8'  # Python version to use
 
@@ -35,7 +35,7 @@ jobs:
         MODEL_NAME: efficientnet
 
     - name: Save EfficientNet Results and Model
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: efficientnet-results-and-model
         path: |
@@ -55,7 +55,7 @@ jobs:
         MODEL_NAME: resnet
 
     - name: Save ResNet Results and Model
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: resnet-results-and-model
         path: |
@@ -75,9 +75,10 @@ jobs:
         MODEL_NAME: vgg16
 
     - name: Save VGG16 Results and Model
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: vgg16-results-and-model
         path: |
           checkpoint.pth
           vgg16_results.txt
+
