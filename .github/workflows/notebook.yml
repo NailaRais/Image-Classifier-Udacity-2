@@ -10,10 +10,10 @@ jobs:
 
     steps:
     - name: Checkout the repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Set up Python
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v4
       with:
         python-version: '3.8'
 
@@ -39,7 +39,7 @@ jobs:
         cat notebook_output.log  # Print notebook output in the Actions log
 
     - name: Upload Executed Notebook and Logs
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: executed-notebook
         path: |
